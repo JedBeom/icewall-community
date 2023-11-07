@@ -96,7 +96,7 @@ def signup():
     username = request.form.get('username')
     password = request.form.get('password')
 
-    if not(username):
+    if not(username and password):
         return "사용자 이름이 입력되지 않았습니다"
 
     usertable=User()
