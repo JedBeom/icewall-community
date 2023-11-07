@@ -1,0 +1,27 @@
+<div class="container">
+    <br>
+    <h1>** 게시판 **</a></h1>
+    <br>
+    
+    <table style="border: 1px solid;">
+        <thead> 
+            <tr> 
+                <th>번호</th>
+                <th>제목</th>
+                <th>작성날짜</th>
+            </tr>
+        </thead> 
+        <tbody>
+            {% for i in post_list %}
+            <tr>
+                <td>{{ i.id }}</td>
+                <td><a href="/detail/{{ i.id }}/">{{ i.title }}</a></td>
+                <td>{{ i.datetime }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    <hr>
+    <button type="button" onclick="location.href='/post' ">글쓰기</button>
+
+</div>

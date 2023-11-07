@@ -1,0 +1,17 @@
+<h1>{{ post.title }}</h1>
+<div>
+    {{ post.content }}
+</div>
+
+<h5>댓글 {{ post.comment_set|length }}개</h5>
+<div>
+    <ul>
+    {% for comment in post.comment_set %}
+        <li>{{ comment.content }}</li>
+    {% endfor %}
+    </ul>
+</div>
+
+<a href="/detail/{{post.id}}/comment/">댓글 등록</a>
+<br>
+<a href="/delete/{{ post.id }}/">삭제</a>

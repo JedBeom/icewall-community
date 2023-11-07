@@ -1,0 +1,17 @@
+{%with messages = get_flashed_messages()%}
+{%if messages %}
+<script type="text/javascript">
+  alert("{{messages[-1]}}");
+</script>
+{%endif%}
+{%endwith%}
+
+<h1>** Home **</h1>
+
+<form method="POST" action=".">
+      <input type="text" class="form-control" id="inputText" placeholder="무엇이든 입력해보세요 !" name="inputText"/>
+      <button type="submit" class="btn btn-primary">제출</button>
+</form>
+
+<button type="button" onclick="location.href='/post_list' ">게시물 목록</button>
+<button type="button" onclick="location.href='/logout' ">로그 아웃</button> 
