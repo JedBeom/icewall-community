@@ -146,4 +146,9 @@ if __name__ == "__main__":
         # db.app = app
         db.create_all()
 
-        app.run(host="127.0.0.1", port=5000, debug=True)
+        try:
+            ip = os.environ["ICEWALL"]
+        except KeyError:
+            ip = "127.0.0.1"
+
+        app.run(host=ip, port=5001, debug=True)
