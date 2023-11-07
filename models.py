@@ -17,6 +17,8 @@ class Post(db.Model):
     title = db.Column(db.String(50))
     content = db.Column(db.String(1000))
     datetime = db.Column(db.DateTime(), default=datetime.now(), onupdate=datetime.now())
+    user = db.relationship('User', backref=db.backref('post_set'))
+    username = db.Column(db.String(100), db.ForeignKey('user.username', ondelete='CASCADE')) # Post에 username을 저장하는 user_id column 생성
 
 class Comment(db.Model):
     __tablename__ = 'comment'
