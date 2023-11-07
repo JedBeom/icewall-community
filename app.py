@@ -11,13 +11,14 @@ def home():
     if 'username' not in session:
         flash('로그인하십시오', '')
         return redirect('/login/')
+
+    if request.method == 'POST':
+        username = request.form.get('inputText')
     else:
-        if request.method == 'POST':
-            username = request.form.get('inputText')
-        else:
-            username = session['username']
-        flash('hello, {}'.format(username))
-        return render_template("home.html")
+        username = session['username']
+
+    flash('hello, {}'.format(username))
+    return render_template("home.html")
 
 @app.route('/post_list/', methods=['GET', 'POST'])
 def post_list():
@@ -30,6 +31,7 @@ def upload_file():
 		f = request.files['file']
 		f.save(os.path.join(app.config['UPLOAD_FOLDER'], f.filename))
 		return 'Upload Success'
+
 	else:
 		return """
 		<form action="/fileUpload" method="POST" enctype="multipart/form-data">
@@ -40,22 +42,22 @@ def upload_file():
 
 @app.route('/post/', methods=['GET','POST'])
 def post():
-    if request.method == 'POST':
-        title = request.form.get('title')
-        content = request.form.get('content')
-
-        if not(title and content):
-            return "입력되지 않은 정보가 있습니다"
-        else:
-            posttable=Post()
-            posttable.title = title
-            posttable.content = content
-
-            db.session.add(posttable)
-            db.session.commit()
-            return redirect('/post_list')
-    else:
+    if request.method == "GET":
         return render_template('post.html')
+
+    title = request.form.get('title')
+    content = request.form.get('content')
+
+    if not(title and content):
+        return "입력되지 않은 정보가 있습니다"
+
+    posttable = Post()
+    posttable.title = title
+    posttable.content = content
+
+    db.session.add(posttable)
+    db.session.commit()
+    return redirect('/post_list')
 
 @app.route('/detail/<int:post_id>/')
 def detail(post_id):
@@ -71,60 +73,59 @@ def delete(post_id):
 
 @app.route('/detail/<int:post_id>/comment/', methods=['GET', 'POST'])
 def comment(post_id):
-    if request.method == 'POST':
-        content = request.form.get('content')
-
-        post = Post.query.get_or_404(post_id)
-        comment = Comment()
-        comment.content = content
-        comment.post = post
-        comment.post_id = post_id
-
-        db.session.add(comment)
-        db.session.commit()
-        return redirect(url_for('detail', post_id=post_id))
-    else:
+    if request.method == 'GET':
         return render_template("comment.html")
+
+    content = request.form.get('content')
+
+    post = Post.query.get_or_404(post_id)
+    comment = Comment()
+    comment.content = content
+    comment.post = post
+    comment.post_id = post_id
+
+    db.session.add(comment)
+    db.session.commit()
+    return redirect(url_for('detail', post_id=post_id))
     
 @app.route('/signup/', methods=['GET','POST'])
 def signup():
-    if request.method == 'POST':
-        username = request.form.get('username')
-        password = request.form.get('password')
-
-        if not(username):
-            return "사용자 이름이 입력되지 않았습니다"
-        else:
-            usertable=User()
-            usertable.username = username
-            usertable.password = password
-
-            db.session.add(usertable)
-            db.session.commit()
-            return redirect('/')
-    else:
+    if request.method == 'GET':
         return render_template("signup.html")
+
+    username = request.form.get('username')
+    password = request.form.get('password')
+
+    if not(username):
+        return "사용자 이름이 입력되지 않았습니다"
+
+    usertable=User()
+    usertable.username = username
+    usertable.password = password
+
+    db.session.add(usertable)
+    db.session.commit()
+    return redirect('/')
     
 @app.route('/login/', methods=['GET', 'POST'])
 def login():
-    if request.method == 'POST':
-        username = request.form.get('username')
-        password = request.form.get('password')
-
-        # print(username) -> 터미널창에서 username 확인 가능, 디버깅 시 사용
-
-        if not(username and password):
-            return "입력되지 않은 정보가 있습니다"
-        else:
-            db = sqlite3.connect("db.sqlite")
-            user = db.cursor()
-            user.execute("SELECT * FROM user WHERE username = '%s'" % username)
-            session['username'] = username
-            rows = user.fetchall()
-            return rows
-
-    else:
+    if request.method == 'GET':
         return render_template('login.html')
+
+    username = request.form.get('username')
+    password = request.form.get('password')
+
+    # print(username) -> 터미널창에서 username 확인 가능, 디버깅 시 사용
+
+    if not(username and password):
+        return "입력되지 않은 정보가 있습니다"
+
+    db = sqlite3.connect("db.sqlite")
+    user = db.cursor()
+    user.execute("SELECT * FROM user WHERE username = '%s'" % username)
+    session['username'] = username
+    rows = user.fetchall()
+    return rows
 
 @app.route('/logout/', methods=['GET', 'POST'])
 def logout():
@@ -142,7 +143,7 @@ if __name__ == "__main__":
         app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
         app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
         db.init_app(app)
-        db.app = app
+        # db.app = app
         db.create_all()
 
         app.run(host="127.0.0.1", port=5000, debug=True)
