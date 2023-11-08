@@ -1,3 +1,6 @@
+{% extends "layout.html" %}
+
+{% block content %}
 {%with messages = get_flashed_messages()%}
 {%if messages %}
 <script type="text/javascript">
@@ -15,3 +18,5 @@
 
 <button type="button" onclick="location.href='/post_list' ">게시물 목록</button>
 <button type="button" onclick="location.href='/logout' ">로그 아웃</button> 
+
+{% endblock content %}

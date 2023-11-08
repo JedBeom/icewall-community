@@ -1,3 +1,7 @@
+{% extends "layout.html" %}
+
+{% block content %}
+
 {%with messages = get_flashed_messages()%}
 {%if messages %}
 <script type="text/javascript">
@@ -6,29 +10,23 @@
 {%endif%}
 {%endwith%}
 
-<!DOCTYPE html>
-<html lang="en">
+<div class="row mt-5">
+	<h1>로그인</h1>
+</div>
 
-<body>
-    <div class="container">
-        <div class="row mt-5">
-            <h1>로그인</h1>
-        </div>
+<div class="col-12">
+	<br><br>
+	<form method="POST" action=".">
+		<div class="form-group">
+			<label for="username">사용자 이름</label>
+			<input type="text" class="form-control" id="username" placeholder="사용자 이름" name="username"/>
+		</div>
+		<div class="form-group">
+			<label for="password">비밀번호</label>
+			<input type="text" class="form-control" id="password" placeholder="비밀번호" name="password"/>
+		</div>
+		<button type="submit" class="btn btn-primary">제출</button>
+	</form>
+</div>
 
-        <div class="col-12">
-            <br><br>
-            <form method="POST" action=".">
-                <div class="form-group">
-                    <label for="username">사용자 이름</label>
-                    <input type="text" class="form-control" id="username" placeholder="사용자 이름" name="username"/>
-                </div>
-                <div class="form-group">
-                    <label for="password">비밀번호</label>
-                    <input type="text" class="form-control" id="password" placeholder="비밀번호" name="password"/>
-                </div>
-                <button type="submit" class="btn btn-primary">제출</button>
-            </form>
-        </div>
-    </div>
-</body>
-</html>
+{% endblock content %}

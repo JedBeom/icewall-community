@@ -1,4 +1,9 @@
+{% extends "layout.html" %}
+
+{% block content %}
+
 <h1>{{ post.title }}</h1>
+<p>By {{ post.user.username }}</p>
 <div>
     {{ post.content }}
 </div>
@@ -7,7 +12,7 @@
 <div>
     <ul>
     {% for comment in post.comment_set %}
-        <li>{{ comment.content }}</li>
+	<li>{{ comment.content }} — by {{ comment.user.username }}</li>
     {% endfor %}
     </ul>
 </div>
@@ -15,3 +20,5 @@
 <a href="/detail/{{post.id}}/comment/">댓글 등록</a>
 <br>
 <a href="/delete/{{ post.id }}/">삭제</a>
+
+{% endblock content %}
