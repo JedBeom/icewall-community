@@ -29,7 +29,7 @@ def home():
     s = get_session_from_session(session)
     if not s:
         flash('로그인하십시오', '')
-        return redirect('/login/')
+        return redirect(url_for("login"))
 
     username = request.form.get('inputText')
     if request.method == 'GET':
@@ -66,7 +66,7 @@ def upload_file():
 def post():
     s = get_session_from_session(session)
     if not s: # 로그인 정보가 없을 시 
-        return redirect("/login") # 로그인 유도
+        return redirect(url_for("login")) # 로그인 유도
 
     if request.method == "GET":
         return render_template('post.html')
@@ -86,7 +86,7 @@ def post():
 
     db.session.add(posttable)
     db.session.commit()
-    return redirect('/post_list')
+    return redirect(url_for("post_list"))
 
 @app.route('/detail/<int:post_id>/')
 def detail(post_id):
@@ -97,7 +97,7 @@ def detail(post_id):
 def delete(post_id):
     s = get_session_from_session(session)
     if not s: # 로그인 정보가 없을 시 
-        return redirect("/login") # 로그인 유도
+        return redirect(url_for("login")) # 로그인 유도
 
     post = Post.query.get_or_404(post_id)
     if post.user_id != s.user_id:
@@ -105,7 +105,7 @@ def delete(post_id):
 
     db.session.delete(post)
     db.session.commit()
-    return redirect('/post_list/') # TODO: 삭제 완료 메시지
+    return redirect(url_for('post_list')) # TODO: 삭제 완료 메시지
 
 @app.route('/detail/<int:post_id>/comment/', methods=['GET', 'POST'])
 def comment(post_id):
@@ -116,7 +116,7 @@ def comment(post_id):
 
     s = get_session_from_session(session)
     if not s: # 로그인 정보가 없을 시 
-        return redirect("/login") # 로그인 유도
+        return redirect(url_for("login")) # 로그인 유도
 
     content = request.form.get('content')
 
@@ -155,7 +155,7 @@ def signup():
     db.session.add(usertable)
     db.session.commit()
 
-    return redirect('/')
+    return redirect(url_for('home'))
     
 @app.route('/login/', methods=['GET', 'POST'])
 def login():
@@ -191,11 +191,11 @@ def logout():
     s_id = session.pop(SESSION_FIELD, "")
     s = Session.query.get(s_id)
     if not s:
-        return redirect('/')
+        return redirect(url_for("home"))
 
     db.session.delete(s)
     db.session.commit()
-    return redirect('/')
+    return redirect(url_for("home"))
 
 if __name__ == "__main__":
     with app.app_context():
