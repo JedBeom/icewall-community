@@ -2,20 +2,31 @@
 
 {% block content %}
 
-<h1>{{ post.title }}</h1>
+<div class="row mt-5">
+	<h1>{{ post.title }}</h1>
+</div>
 <p>By {{ post.user.username }}</p>
-<div>
+<article class="mb-5">
     {{ post.content }}
-</div>
+</article>
 
-<h5>댓글 {{ post.comment_set|length }}개</h5>
-<div>
-    <ul>
-    {% for comment in post.comment_set %}
-	<li>{{ comment.content }} — by {{ comment.user.username }}</li>
-    {% endfor %}
-    </ul>
-</div>
+<h5 class="mb-3">댓글 {{ post.comment_set|length }}개</h5>
+<table class="table">
+	<thead>
+		<tr>
+			<th width="20%">작성자</th>
+			<th width="80%">내용</th>
+		</tr>
+	</thead>
+	<tbody>
+		{% for comment in post.comment_set %}
+		<tr>
+			<th width="20%">{{ comment.user.username }}</th>
+			<th width="80%">{{ comment.content }}</th>
+		</tr>
+		{% endfor %}
+	</tbody>
+</table>
 
 <a href="/detail/{{post.id}}/comment/">댓글 등록</a>
 <br>

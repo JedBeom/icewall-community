@@ -216,6 +216,14 @@ def logout():
     flash("로그아웃 되었습니다.", "primary")
     return redirect(url_for("login"))
 
+@app.errorhandler(404)
+def error_404(_):
+    return render_template("404.html")
+
+@app.errorhandler(500)
+def error_500(_):
+    return render_template("404.html")
+
 if __name__ == "__main__":
     with app.app_context():
         basedir = os.path.abspath(os.path.dirname(__file__)) # 현재 파일이 있는 폴더 경로
