@@ -1,5 +1,4 @@
 import os
-import uuid
 from flask import Flask, request, render_template, redirect, session, flash, url_for
 from flask_bcrypt import Bcrypt
 from models import db, User, Post, Comment, Session
