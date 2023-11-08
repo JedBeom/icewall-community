@@ -1,5 +1,6 @@
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
+import uuid
 
 db = SQLAlchemy()
 
@@ -25,4 +26,15 @@ class Comment(db.Model):
     post_id = db.Column(db.Integer, db.ForeignKey('post.id', ondelete='CASCADE'))
     post = db.relationship('Post', backref=db.backref('comment_set'))
     content = db.Column(db.Text(), nullable=False)
+    datetime = db.Column(db.DateTime(), default=datetime.now(), onupdate=datetime.now())
+
+def generate_uuid() -> str:
+    return str(uuid.uuid4())
+
+class Session(db.Model):
+    __tablename__ = 'session'
+
+    id = db.Column(db.Text(), primary_key=True, default=generate_uuid)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id', ondelete='CASCADE'))
+    user = db.relationship('User')
     datetime = db.Column(db.DateTime(), default=datetime.now(), onupdate=datetime.now())

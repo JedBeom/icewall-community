@@ -1,21 +1,28 @@
 import os
-import sqlite3
+import uuid
 from flask import Flask, request, render_template, redirect, session, flash, url_for
-from models import db, User, Post, Comment
+from flask_bcrypt import Bcrypt
+from models import db, User, Post, Comment, Session
+
 app = Flask(__name__)
+bcrypt = Bcrypt(app)
 
 UPLOAD_FOLDER = 'static/uploads'
+SESSION_FIELD = 'PHPUSER'
 
 @app.route('/', methods=['GET','POST'])
 def home():
-    if 'username' not in session:
+    if SESSION_FIELD not in session:
         flash('로그인하십시오', '')
         return redirect('/login/')
 
-    if request.method == 'POST':
-        username = request.form.get('inputText')
-    else:
-        username = session['username']
+    username = request.form.get('inputText')
+    if request.method == 'GET':
+        s_id = session[SESSION_FIELD] 
+        s = Session.query.get(s_id)
+
+        if s:
+            username = s.user.username
 
     flash('hello, {}'.format(username))
     return render_template("home.html")
@@ -96,15 +103,21 @@ def signup():
     username = request.form.get('username')
     password = request.form.get('password')
 
-    if not(username and password):
+    if not (username and password):
         return "사용자 이름이 입력되지 않았습니다"
 
-    usertable=User()
+    if User.query.get(username):
+        return "잘못된 사용자 이름입니다."
+
+    password = bcrypt.generate_password_hash(password) # encrypt
+
+    usertable = User()
     usertable.username = username
     usertable.password = password
 
     db.session.add(usertable)
     db.session.commit()
+
     return redirect('/')
     
 @app.route('/login/', methods=['GET', 'POST'])
@@ -115,21 +128,37 @@ def login():
     username = request.form.get('username')
     password = request.form.get('password')
 
-    # print(username) -> 터미널창에서 username 확인 가능, 디버깅 시 사용
+    if not (username and password):
+        return "유저네임 또는 암호가 올바르지 않습니다."
 
-    if not(username and password):
-        return "입력되지 않은 정보가 있습니다"
+    user = User.query.filter_by(username=username).first() # .first(): 해당하는 row가 없으면 None 반환
 
-    db = sqlite3.connect("db.sqlite")
-    user = db.cursor()
-    user.execute("SELECT * FROM user WHERE username = '%s'" % username)
-    session['username'] = username
-    rows = user.fetchall()
-    return rows
+    if not user:
+        return "유저네임 또는 암호가 올바르지 않습니다."
+
+    if not bcrypt.check_password_hash(user.password, password):
+        return "유저네임 또는 암호가 올바르지 않습니다."
+
+    s = Session() 
+    s.user = user
+    s.user_id = user.id
+
+    db.session.add(s)
+    db.session.commit()
+    
+    session[SESSION_FIELD] = s.id
+    return redirect(url_for("home"))
+    
 
 @app.route('/logout/', methods=['GET', 'POST'])
 def logout():
-    session.pop('username', None)
+    s_id = session.pop(SESSION_FIELD, "")
+    s = Session.query.get(s_id)
+    if not s:
+        return redirect('/')
+
+    db.session.delete(s)
+    db.session.commit()
     return redirect('/')
 
 if __name__ == "__main__":
