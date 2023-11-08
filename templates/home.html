@@ -1,14 +1,6 @@
 {% extends "layout.html" %}
 
 {% block content %}
-{%with messages = get_flashed_messages()%}
-{%if messages %}
-<script type="text/javascript">
-  alert("{{messages[-1]}}");
-</script>
-{%endif%}
-{%endwith%}
-
 <h1>** Home **</h1>
 
 <form method="POST" action=".">

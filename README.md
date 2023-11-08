@@ -13,7 +13,7 @@
 - [ ] 로깅
 
 - [ ] template
-    - [ ] 에러 페이지 추가 (flash, get_flashed_message 사용)
+    - [ ] 에러 페이지 추가 
     - [x] 부트스트랩 적용 
-    - [ ] 에러 발생시 str만 리턴하는 게 아니라 메시지박스를 띄우도록 
+    - [x] 에러 발생시 str만 리턴하는 게 아니라 메시지박스를 띄우도록 (flash, get_flashed_message 사용)
     - [x] `layout.html` 만들기 

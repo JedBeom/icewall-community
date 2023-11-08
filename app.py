@@ -28,7 +28,7 @@ def get_session_from_session(session: SessionMixin):
 def home():
     s = get_session_from_session(session)
     if not s:
-        flash('로그인하십시오', '')
+        flash('로그인이 필요합니다!', 'danger')
         return redirect(url_for("login"))
 
     username = request.form.get('inputText')
@@ -39,7 +39,7 @@ def home():
         if s:
             username = s.user.username
 
-    flash('hello, {}'.format(username))
+    flash('hello, {}'.format(username), "primary")
     return render_template("home.html")
 
 @app.route('/post_list/', methods=['GET', 'POST'])
@@ -66,17 +66,18 @@ def upload_file():
 def post():
     s = get_session_from_session(session)
     if not s: # 로그인 정보가 없을 시 
+        flash("로그인이 필요합니다!", "danger")
         return redirect(url_for("login")) # 로그인 유도
 
     if request.method == "GET":
         return render_template('post.html')
 
-
     title = request.form.get('title')
     content = request.form.get('content')
 
     if not(title and content):
-        return "입력되지 않은 정보가 있습니다"
+        flash("입력되지 않은 정보가 있습니다", "warning")
+        return redirect(url_for("post"))
 
     posttable = Post()
     posttable.title = title
@@ -86,6 +87,8 @@ def post():
 
     db.session.add(posttable)
     db.session.commit()
+
+    flash("게시되었습니다.", "success")
     return redirect(url_for("post_list"))
 
 @app.route('/detail/<int:post_id>/')
@@ -97,15 +100,19 @@ def detail(post_id):
 def delete(post_id):
     s = get_session_from_session(session)
     if not s: # 로그인 정보가 없을 시 
+        flash("로그인이 필요합니다!", "danger")
         return redirect(url_for("login")) # 로그인 유도
 
     post = Post.query.get_or_404(post_id)
     if post.user_id != s.user_id:
-        return "게시글은 작성자만 삭제할 수 있습니다"
+        flash("게시글은 작성자만 삭제할 수 있습니다.", "danger")
+        return redirect(url_for("detail", post_id=post_id))
 
     db.session.delete(post)
     db.session.commit()
-    return redirect(url_for('post_list')) # TODO: 삭제 완료 메시지
+
+    flash("삭제 되었습니다.", "success")
+    return redirect(url_for('post_list'))
 
 @app.route('/detail/<int:post_id>/comment/', methods=['GET', 'POST'])
 def comment(post_id):
@@ -116,6 +123,7 @@ def comment(post_id):
 
     s = get_session_from_session(session)
     if not s: # 로그인 정보가 없을 시 
+        flash("로그인이 필요합니다!", "danger")
         return redirect(url_for("login")) # 로그인 유도
 
     content = request.form.get('content')
@@ -130,6 +138,7 @@ def comment(post_id):
 
     db.session.add(comment)
     db.session.commit()
+    flash("댓글을 달았습니다.", "success")
     return redirect(url_for('detail', post_id=post_id))
     
 @app.route('/signup/', methods=['GET','POST'])
@@ -141,10 +150,12 @@ def signup():
     password = request.form.get('password')
 
     if not (username and password):
-        return "사용자 이름과 암호를 입력해 주십시오"
+        flash("사용자 이름과 암호를 입력해 주십시오.", "danger")
+        return redirect(url_for("signup"))
 
     if User.query.get(username):
-        return "잘못된 사용자 이름입니다."
+        flash("잘못된 사용자 이름입니다.", "danger")
+        return redirect(url_for("signup"))
 
     password = bcrypt.generate_password_hash(password) # encrypt
 
@@ -155,7 +166,8 @@ def signup():
     db.session.add(usertable)
     db.session.commit()
 
-    return redirect(url_for('home'))
+    flash("회원가입 완료! 이제 로그인 해주세요.", "primary")
+    return redirect(url_for('login'))
     
 @app.route('/login/', methods=['GET', 'POST'])
 def login():
@@ -166,15 +178,18 @@ def login():
     password = request.form.get('password')
 
     if not (username and password):
-        return "유저네임 또는 암호가 올바르지 않습니다."
+        flash("사용자 이름 또는 암호가 올바르지 않습니다.", "danger")
+        return redirect(url_for("login"))
 
     user = User.query.filter_by(username=username).first() # .first(): 해당하는 row가 없으면 None 반환
 
     if not user:
-        return "유저네임 또는 암호가 올바르지 않습니다."
+        flash("사용자 이름 또는 암호가 올바르지 않습니다.", "danger")
+        return redirect(url_for("login"))
 
     if not bcrypt.check_password_hash(user.password, password):
-        return "유저네임 또는 암호가 올바르지 않습니다."
+        flash("사용자 이름 또는 암호가 올바르지 않습니다.", "danger")
+        return redirect(url_for("login"))
 
     s = Session() 
     s.user = user
@@ -184,6 +199,7 @@ def login():
     db.session.commit()
     
     session[SESSION_FIELD] = s.id
+    # home에서 인사를 하기 때문에 flash 없음 
     return redirect(url_for("home"))
 
 @app.route('/logout/', methods=['GET', 'POST'])
@@ -191,11 +207,14 @@ def logout():
     s_id = session.pop(SESSION_FIELD, "")
     s = Session.query.get(s_id)
     if not s:
-        return redirect(url_for("home"))
+        flash("로그아웃 되었습니다.", "primary")
+        return redirect(url_for("login"))
 
     db.session.delete(s)
     db.session.commit()
-    return redirect(url_for("home"))
+
+    flash("로그아웃 되었습니다.", "primary")
+    return redirect(url_for("login"))
 
 if __name__ == "__main__":
     with app.app_context():
