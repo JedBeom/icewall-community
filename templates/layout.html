@@ -26,7 +26,12 @@ tbody th {
 		  <ol class="breadcrumb">
 			<li class="breadcrumb-item"><a href="/">메인</a></li>
 			<li class="breadcrumb-item"><a href="/post_list">게시글 목록</a></li>
-			<li class="breadcrumb-item"><a href="/logout">로그아웃</a></li>
+			{% if not_loggined %}
+				<li class="breadcrumb-item"><a href="/login">로그인</a></li>
+				<li class="breadcrumb-item"><a href="/signup">회원가입</a></li>
+			{% else %}
+				<li class="breadcrumb-item"><a href="/logout">로그아웃</a></li>
+			{% endif %}
 		  </ol>
 		</nav>
 

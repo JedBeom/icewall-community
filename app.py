@@ -44,8 +44,13 @@ def home():
 
 @app.route('/post_list/', methods=['GET', 'POST'])
 def post_list():
+    s = get_session_from_session(session)
+    not_loggined = True
+    if s:
+        not_loggined = False
+
     post_list = Post.query.order_by(Post.datetime.asc())
-    return render_template("post_list.html", post_list=post_list)
+    return render_template("post_list.html", post_list=post_list, not_loggined=not_loggined)
 
 @app.route('/upload', methods = ['GET', 'POST'])
 def upload_file():
@@ -143,8 +148,13 @@ def comment(post_id):
     
 @app.route('/signup/', methods=['GET','POST'])
 def signup():
+    s = get_session_from_session(session)
+    if s:
+        flash("이미 로그인 되어있습니다.", "danger")
+        return redirect(url_for("home"))
+
     if request.method == 'GET':
-        return render_template("signup.html")
+        return render_template("signup.html", not_loggined=True)
 
     username = request.form.get('username')
     password = request.form.get('password')
@@ -171,8 +181,13 @@ def signup():
     
 @app.route('/login/', methods=['GET', 'POST'])
 def login():
+    s = get_session_from_session(session)
+    if s:
+        flash("이미 로그인 되어있습니다.", "danger")
+        return redirect(url_for("home"))
+
     if request.method == 'GET':
-        return render_template('login.html')
+        return render_template('login.html', not_loggined=True)
 
     username = request.form.get('username')
     password = request.form.get('password')
