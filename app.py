@@ -1,5 +1,6 @@
 import os
 from flask import Flask, request, render_template, redirect, session, flash, url_for
+from flask.sessions import SessionMixin
 from flask_bcrypt import Bcrypt
 from models import db, User, Post, Comment, Session
 
@@ -9,9 +10,24 @@ bcrypt = Bcrypt(app)
 UPLOAD_FOLDER = 'static/uploads'
 SESSION_FIELD = 'PHPUSER'
 
+def get_session_from_session(session: SessionMixin):
+    if SESSION_FIELD not in session:
+        return None
+
+    s_id = session[SESSION_FIELD]
+    s = Session.query.get(s_id)
+    
+    if not s: # 유효하지 않은 세션
+        session.pop(SESSION_FIELD)
+        return None
+    
+    return s
+
+
 @app.route('/', methods=['GET','POST'])
 def home():
-    if SESSION_FIELD not in session:
+    s = get_session_from_session(session)
+    if not s:
         flash('로그인하십시오', '')
         return redirect('/login/')
 
@@ -48,8 +64,13 @@ def upload_file():
 
 @app.route('/post/', methods=['GET','POST'])
 def post():
+    s = get_session_from_session(session)
+    if not s: # 로그인 정보가 없을 시 
+        return redirect("/login") # 로그인 유도
+
     if request.method == "GET":
         return render_template('post.html')
+
 
     title = request.form.get('title')
     content = request.form.get('content')
@@ -60,7 +81,8 @@ def post():
     posttable = Post()
     posttable.title = title
     posttable.content = content
-    posttable.username = session['username']  # post가 작성자 username에 대한 정보를 포함하도록 변경
+    posttable.user_id = s.user_id # Post에 user 정보 저장
+    posttable.user = s.user
 
     db.session.add(posttable)
     db.session.commit()
@@ -71,20 +93,30 @@ def detail(post_id):
     post = Post.query.get_or_404(post_id)
     return render_template("post_detail.html", post=post)
 
-@app.route('/delete/<int:post_id>/')
+@app.route('/delete/<int:post_id>/', methods=["GET"])
 def delete(post_id):
+    s = get_session_from_session(session)
+    if not s: # 로그인 정보가 없을 시 
+        return redirect("/login") # 로그인 유도
+
     post = Post.query.get_or_404(post_id)
-    if post.username == session['username']:  # post의 작성자와 로그인된 사용자가 같을때만 delete 실행
-        db.session.delete(post)
-        db.session.commit()
-        return redirect('/post_list/')
-    else:
+    if post.user_id != s.user_id:
         return "게시글은 작성자만 삭제할 수 있습니다"
+
+    db.session.delete(post)
+    db.session.commit()
+    return redirect('/post_list/') # TODO: 삭제 완료 메시지
 
 @app.route('/detail/<int:post_id>/comment/', methods=['GET', 'POST'])
 def comment(post_id):
     if request.method == 'GET':
         return render_template("comment.html")
+
+    # method == "POST"의 경우 
+
+    s = get_session_from_session(session)
+    if not s: # 로그인 정보가 없을 시 
+        return redirect("/login") # 로그인 유도
 
     content = request.form.get('content')
 
@@ -93,6 +125,8 @@ def comment(post_id):
     comment.content = content
     comment.post = post
     comment.post_id = post_id
+    comment.user_id = s.user_id
+    comment.user = s.user
 
     db.session.add(comment)
     db.session.commit()
