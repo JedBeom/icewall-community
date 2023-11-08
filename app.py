@@ -2,13 +2,15 @@ import os
 from flask import Flask, request, render_template, redirect, session, flash, url_for
 from flask.sessions import SessionMixin
 from flask_bcrypt import Bcrypt
-from models import db, User, Post, Comment, Session
+from werkzeug.utils import secure_filename
+from models import db, User, Post, Comment, Session, FileRecord
 
 app = Flask(__name__)
 bcrypt = Bcrypt(app)
 
 UPLOAD_FOLDER = 'static/uploads'
 SESSION_FIELD = 'PHPUSER'
+ALLOWED_EXTENSIONS = {'txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif'}
 
 def get_session_from_session(session: SessionMixin):
     if SESSION_FIELD not in session:
@@ -23,6 +25,9 @@ def get_session_from_session(session: SessionMixin):
     
     return s
 
+def allowed_file(filename):
+    return '.' in filename and \
+           filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 @app.route('/', methods=['GET','POST'])
 def home():
@@ -54,18 +59,40 @@ def post_list():
 
 @app.route('/upload', methods = ['GET', 'POST'])
 def upload_file():
-	if request.method == 'POST':
-		f = request.files['file']
-		f.save(os.path.join(app.config['UPLOAD_FOLDER'], f.filename))
-		return 'Upload Success'
+    s = get_session_from_session(session)
+    if not s:
+        flash("로그인이 필요합니다!", "danger")
+        return redirect(url_for("login")) # 로그인 유도
 
-	else:
-		return """
-		<form action="/fileUpload" method="POST" enctype="multipart/form-data">
-			<input type="file" name="file" />
-			<input type="submit"/>
-		</form>
-		"""
+    if request.method == 'GET':
+        return render_template("file_upload.html")
+
+    if "file" not in request.files:
+        flash("파일이 첨부되지 않았습니다.", "warning")
+        return redirect(url_for("home")) # 귀찮으라고 home으로 리다이렉트
+
+    f = request.files["file"]
+    if (not f) or (not f.filename):
+        flash("파일이 첨부되지 않았습니다.", "warning")
+        return redirect(url_for("home")) # 귀찮으라고 home으로 리다이렉트
+
+    if not allowed_file(f.filename):
+        flash("문제가 발생했습니다.", "danger")
+        return redirect(url_for("home")) # 귀찮으라고 home으로 리다이렉트
+
+    filename = secure_filename(f.filename)
+    f.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+
+    fr = FileRecord()
+    fr.filename = filename
+    fr.user_id = s.user_id
+    fr.user = s.user
+    db.session.add(fr)
+    db.session.commit()
+
+    flash("파일을 업로드했습니다.", "success")
+    return redirect(url_for("home")) # 귀찮으라고 home으로 리다이렉트
+
 
 @app.route('/post/', methods=['GET','POST'])
 def post():
@@ -249,6 +276,7 @@ if __name__ == "__main__":
         app.config['SQLALCHEMY_COMMIT_ON_TEARDOWN'] = True
         app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
         app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+        app.config['MAX_CONTENT_LENGTH'] = 16 * 1000 * 1000
         db.init_app(app)
         # db.app = app
         db.create_all()

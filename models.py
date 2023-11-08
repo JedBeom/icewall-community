@@ -45,3 +45,13 @@ class Session(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('user.id', ondelete='CASCADE'))
     user = db.relationship('User')
     datetime = db.Column(db.DateTime(), default=datetime.now(), onupdate=datetime.now())
+
+class FileRecord(db.Model):
+    __tablename__ = 'file_record'
+
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id', ondelete='CASCADE'))
+    user = db.relationship('User')
+    filename = db.Column(db.Text(), nullable=False)
+    datetime = db.Column(db.DateTime(), default=datetime.now(), onupdate=datetime.now())
+

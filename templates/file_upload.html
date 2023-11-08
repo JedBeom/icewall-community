@@ -1,0 +1,18 @@
+{% extends "layout.html" %}
+{% block content %}
+
+<div class="row mt-5">
+	<h1>파일 업로드</h1>
+</div>
+
+<p>좋아하는 파일을 업로드하세요.</p>
+
+<form action="/upload" method="post" enctype="multipart/form-data">
+<div class="mb-3">
+  <label for="id" class="form-label">사진만 업로드 가능합니다 (jpg, png 등)</label>
+  <input class="form-control" type="file" id="file" name="file">
+  <button type="submit">업로드</button>
+</div>
+</form>
+
+{% endblock content %}
