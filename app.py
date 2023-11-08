@@ -61,6 +61,7 @@ def post():
     posttable = Post()
     posttable.title = title
     posttable.content = content
+    posttable.username = session['username']  # post가 작성자 username에 대한 정보를 포함하도록 변경
 
     db.session.add(posttable)
     db.session.commit()
@@ -74,9 +75,12 @@ def detail(post_id):
 @app.route('/delete/<int:post_id>/')
 def delete(post_id):
     post = Post.query.get_or_404(post_id)
-    db.session.delete(post)
-    db.session.commit()
-    return redirect('/post_list/')
+    if post.username == session['username']:  # post의 작성자와 로그인된 사용자가 같을때만 delete 실행
+        db.session.delete(post)
+        db.session.commit()
+        return redirect('/post_list/')
+    else:
+        return "게시글은 작성자만 삭제할 수 있습니다"
 
 @app.route('/detail/<int:post_id>/comment/', methods=['GET', 'POST'])
 def comment(post_id):
@@ -104,7 +108,7 @@ def signup():
     password = request.form.get('password')
 
     if not (username and password):
-        return "사용자 이름이 입력되지 않았습니다"
+        return "사용자 이름과 암호를 입력해 주십시오"
 
     if User.query.get(username):
         return "잘못된 사용자 이름입니다."
@@ -148,7 +152,6 @@ def login():
     
     session[SESSION_FIELD] = s.id
     return redirect(url_for("home"))
-    
 
 @app.route('/logout/', methods=['GET', 'POST'])
 def logout():
