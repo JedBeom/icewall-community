@@ -311,6 +311,9 @@ if __name__ == "__main__":
 
         try:
             ip = os.environ["ICEWALL"]
-            debug = False except KeyError: ip = "127.0.0.1" debug = True
+            debug = False 
+        except KeyError: 
+            ip = "127.0.0.1" 
+            debug = True
 
         app.run(host=ip, port=5001, debug=debug)
