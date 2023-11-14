@@ -1,5 +1,4 @@
 import os
-from datetime import datetime, timedelta
 from flask import Flask, request, render_template, redirect, session, flash, url_for
 from flask.sessions import SessionMixin
 from flask_bcrypt import Bcrypt
@@ -24,12 +23,6 @@ def get_session_from_session(session: SessionMixin):
         session.pop(SESSION_FIELD)
         return None
 
-    now = datetime.now()
-    if now - s.datetime > timedelta(minutes=5):
-        flash("세션이 만료되었습니다. 다시 로그인하십시오.", "danger")
-        session.pop(SESSION_FIELD)
-        return None
-    
     return s
 
 def allowed_file(filename):
