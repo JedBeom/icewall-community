@@ -208,9 +208,14 @@ def signup():
     username = username.replace('<','&lt;') # 스크립트 필터링
     password = password.replace('<','&lt;') # 스크립트 필터링
 
+    if "admi" in username: # 사칭 방지
+        flash("잘못된 사용자 이름입니다.", "danger")
+        return redirect(url_for("signup"))
+
     if User.query.get(username):
         flash("잘못된 사용자 이름입니다.", "danger")
         return redirect(url_for("signup"))
+
     password = bcrypt.generate_password_hash(password) # encrypt
 
     usertable = User()
@@ -306,9 +311,6 @@ if __name__ == "__main__":
 
         try:
             ip = os.environ["ICEWALL"]
-            debug = False
-        except KeyError:
-            ip = "127.0.0.1"
-            debug = True
+            debug = False except KeyError: ip = "127.0.0.1" debug = True
 
         app.run(host=ip, port=5001, debug=debug)
