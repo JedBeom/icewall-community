@@ -3,6 +3,7 @@ from flask import Flask, request, render_template, redirect, session, flash, url
 from flask.sessions import SessionMixin
 from flask_bcrypt import Bcrypt
 from werkzeug.utils import secure_filename
+from flask_wtf.csrf import CSRFProtect
 from models import db, User, Post, Comment, Session, FileRecord
 
 app = Flask(__name__)
@@ -50,12 +51,12 @@ def home():
 @app.route('/post_list/', methods=['GET', 'POST'])
 def post_list():
     s = get_session_from_session(session)
-    not_loggined = True
-    if s:
-        not_loggined = False
+    if not s:
+        flash('로그인이 필요합니다!', 'danger')
+        return redirect(url_for("login"))
 
     post_list = Post.query.order_by(Post.datetime.asc())
-    return render_template("post_list.html", post_list=post_list, not_loggined=not_loggined)
+    return render_template("post_list.html", post_list=post_list)
 
 @app.route('/upload', methods = ['GET', 'POST'])
 def upload_file():
@@ -128,6 +129,11 @@ def post():
 
 @app.route('/detail/<int:post_id>/')
 def detail(post_id):
+    s = get_session_from_session(session)
+    if not s:
+        flash('로그인이 필요합니다!', 'danger')
+        return redirect(url_for("login"))
+
     post = Post.query.get_or_404(post_id)
     return render_template("post_detail.html", post=post)
 
@@ -280,18 +286,21 @@ def error_404(_):
 def error_500(_):
     return render_template("404.html")
 
+csrf = CSRFProtect()
+
 if __name__ == "__main__":
     with app.app_context():
         basedir = os.path.abspath(os.path.dirname(__file__)) # 현재 파일이 있는 폴더 경로
         dbfile = os.path.join(basedir, 'db.sqlite') # 데이터베이스 파일 생성
 
-        app.config['SECRET_KEY'] = "ICEWALL" # 세션관리 및 암호화를 위한 시크릿키 설정
+        app.config['SECRET_KEY'] = "ICEWALL-TEAM-1-1234" # 세션관리 및 암호화를 위한 시크릿키 설정
         app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + dbfile
         app.config['SQLALCHEMY_COMMIT_ON_TEARDOWN'] = True
         app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
         app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
         app.config['MAX_CONTENT_LENGTH'] = 16 * 1000 * 1000
         db.init_app(app)
+        csrf.init_app(app)
         # db.app = app
         db.create_all()
 

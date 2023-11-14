@@ -16,6 +16,7 @@
 			<label for="content">내용</label>
 			<textarea id="'content" name="content" class="form-control"></textarea>
 		</div>
+	<input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
 		<button type="submit" class="btn btn-primary">제출</button>
 	</form>
 </div>

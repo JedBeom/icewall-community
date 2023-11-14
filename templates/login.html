@@ -16,6 +16,7 @@
 			<label for="password" class="form-label">암호</label>
 			<input type="password" class="form-control" id="password" placeholder="암호" name="password"/>
 		</div>
+		<input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
 		<button type="submit" class="btn btn-primary">제출</button>
 	</form>
 </div>
