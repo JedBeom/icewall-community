@@ -104,12 +104,15 @@ def post():
     if request.method == "GET":
         return render_template('post.html')
 
-    title = request.form.get('title').replace('<','&lt;') # 스크립트 필터링
-    content = request.form.get('content').replace('<','&lt;') # 스크립트 필터링
+    title = request.form.get('title')
+    content = request.form.get('content')
 
     if not(title and content):
         flash("입력되지 않은 정보가 있습니다", "warning")
         return redirect(url_for("post"))
+    
+    title = title.replace('<','&lt;') # 스크립트 필터링
+    content = content.replace('<','&lt;') # 스크립트 필터링
 
     posttable = Post()
     posttable.title = title
@@ -158,7 +161,13 @@ def comment(post_id):
         flash("로그인이 필요합니다!", "danger")
         return redirect(url_for("login")) # 로그인 유도
 
-    content = request.form.get('content').replace('<','&lt;') # 스크립트 필터링
+    content = request.form.get('content')
+
+    if not content:
+        flash("내용을 입력하세요.", "warning")
+        return redirect(url_for("comment", post_id=post_id)) # 로그인 유도
+
+    content = content.replace('<','&lt;') # 스크립트 필터링
 
     post = Post.query.get_or_404(post_id)
     comment = Comment()
@@ -183,12 +192,15 @@ def signup():
     if request.method == 'GET':
         return render_template("signup.html", not_loggined=True)
 
-    username = request.form.get('username').replace('<','&lt;') # 스크립트 필터링
-    password = request.form.get('password').replace('<','&lt;') # 스크립트 필터링
+    username = request.form.get('username')
+    password = request.form.get('password')
 
     if not (username and password):
         flash("사용자 이름과 암호를 입력해 주십시오.", "danger")
         return redirect(url_for("signup"))
+
+    username = username.replace('<','&lt;') # 스크립트 필터링
+    password = password.replace('<','&lt;') # 스크립트 필터링
 
     if User.query.get(username):
         flash("잘못된 사용자 이름입니다.", "danger")
@@ -215,12 +227,15 @@ def login():
     if request.method == 'GET':
         return render_template('login.html', not_loggined=True)
 
-    username = request.form.get('username').replace('<','&lt;') # 스크립트 필터링
-    password = request.form.get('password').replace('<','&lt;') # 스크립트 필터링
+    username = request.form.get('username')
+    password = request.form.get('password')
 
     if not (username and password):
         flash("사용자 이름 또는 암호가 올바르지 않습니다.", "danger")
         return redirect(url_for("login"))
+
+    username = username.replace('<','&lt;') # 스크립트 필터링
+    password = password.replace('<','&lt;') # 스크립트 필터링
 
     user = User.query.filter_by(username=username).first() # .first(): 해당하는 row가 없으면 None 반환
 
